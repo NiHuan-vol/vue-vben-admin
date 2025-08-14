@@ -1,0 +1,60 @@
+{
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "codeLogin": "验证码登录",
+    "qrcodeLogin": "二维码登录",
+    "forgetPassword": "忘记密码"
+  },
+  "dashboard": {
+    "title": "概览",
+    "analytics": "分析页",
+    "workspace": "工作台",
+    "workplace": "仪表盘"
+  },
+  "statementAnalysis": {
+    "board": "报表分析仪表盘"
+  },
+  "menu": {
+    "analysis": "分析",
+    "analysis.modeling": "建模分析",
+    "analysis.modeling.modelinglist": "建模列表",
+    "analysis.warehouse": "仓库分析",
+
+    "app": "应用管理",
+    "app.management": "APP管理",
+    "call": "呼叫中心",
+    "call.agentManagement": "坐席管理",
+    "call.callMinutesRecord": "通话记录",
+    "call.billManagement": "账单管理",
+    "call.baseSettingManagement": "套餐设置管理",
+    "call.buyAgent": "购买坐席",
+    "hr": "人力资源",
+    "hr.staffManage": "员工管理",
+    "inventory": "库存管理",
+    "inventory.setting": "基础设置",
+    "inventory.bills": "单据管理",
+    "inventory.report": "报表分析",
+    "inventory.transfers": "调拨业务",
+    "inventory.barcode": "条码管理",
+
+
+    "contract": "合同管理",
+    "contract.list": "合同列表",
+    "contract.templateList": "模板列表",
+    "customize": "自定义设置",
+    "customize.manager": "设置管理",
+    "customize.businessSet": "业务设置",
+    "customize.codeSet": "代码设置",
+    "customize.contractSet": "合同设置",
+    "customize.customerSet": "客户设置",
+    "routes": {
+      "crm": {
+        "finance": {
+          "title": "财务信息",
+          "list": "财务列表"
+        }
+      }
+    }
+  }
+}

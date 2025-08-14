@@ -1,0 +1,40 @@
+{
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "codeLogin": "Code Login",
+    "qrcodeLogin": "Qr Code Login",
+    "forgetPassword": "Forget Password"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "analytics": "Analytics",
+    "workspace": "Workspace",
+    "workplace": "Workplace"
+  },
+  "statementAnalysis": {
+    "board": "Statement Analysis Dashboard"
+  },
+  "menu": {
+    "analysis": "Analysis",
+    "analysis.modeling": "Modeling Analysis",
+    "analysis.modeling.modelinglist": "Modeling List",
+    "app": "App Management",
+    "app.management": "APP Management",
+    "call": "Call Center",
+    "call.agentManagement": "Agent Management",
+    "call.callMinutesRecord": "Call Minutes Record",
+    "call.billManagement": "Bill Management",
+    "call.baseSettingManagement": "Base Setting Management",
+    "call.buyAgent": "Buy Agent",
+    "contract": "Contract Management",
+    "contract.list": "Contract List",
+    "contract.templateList": "Template List",
+    "customize": "Customize Settings",
+    "customize.manager": "Settings Manager",
+    "customize.businessSet": "Business Settings",
+    "customize.codeSet": "Code Settings",
+    "customize.contractSet": "Contract Settings",
+    "customize.customerSet": "Customer Settings"
+  }
+}

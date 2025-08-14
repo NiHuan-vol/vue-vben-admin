@@ -1,0 +1,81 @@
+// 使用Vben-Admin的SCSS变量和混合宏
+@import '@vben/styles/mixins/index.scss';
+@import '@vben/styles/variables/index.scss';
+
+// 模态框样式
+.distribution-modal {
+  .ant-modal-content {
+    border-radius: $border-radius-base;
+  }
+
+  .ant-modal-header {
+    background-color: $bg-color-base;
+    border-bottom: 1px solid $border-color;
+  }
+
+  .ant-modal-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $text-color-primary;
+  }
+}
+
+// 表单样式
+.distribution-form {
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-form-item-label {
+    text-align: right;
+  }
+
+  .ant-input,
+  .ant-select-selector,
+  .ant-input-textarea {
+    border-radius: $border-radius-base;
+    &:focus-within {
+      border-color: $primary-color;
+      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+    }
+  }
+
+  .ant-select-dropdown {
+    border-radius: $border-radius-base;
+  }
+}
+
+// 按钮样式
+.distribution-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+
+  .ant-btn {
+    min-width: 80px;
+  }
+
+  .ant-btn-primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+    &:hover {
+      background-color: adjust-color($primary-color, $lightness: -5%);
+      border-color: adjust-color($primary-color, $lightness: -5%);
+    }
+  }
+}
+
+// 响应式样式
+@include media-breakpoint-down(sm) {
+  .distribution-modal {
+    .ant-modal-content {
+      width: 90% !important;
+      margin: 0 auto;
+    }
+
+    .ant-form-item-label {
+      text-align: left;
+    }
+  }
+}
