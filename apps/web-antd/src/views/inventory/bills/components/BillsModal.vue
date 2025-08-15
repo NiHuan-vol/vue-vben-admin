@@ -12,12 +12,29 @@
       layout="vertical"
     >
       <FormItem label="单据类型" name="type">
-        <Select v-model:value="formData.type" style="width: 100%;">
+        <Select v-model:value="formData.type" style="width: 100%;" @change="handleTypeChange">
           <SelectOption value="1">入库单</SelectOption>
           <SelectOption value="2">出库单</SelectOption>
           <SelectOption value="3">调拨单</SelectOption>
           <SelectOption value="4">盘点单</SelectOption>
+          <SelectOption value="5">委外入库单</SelectOption>
+          <SelectOption value="6">委外出库单</SelectOption>
         </Select>
+      </FormItem>
+
+      <!-- 委外入库单特有字段 -->
+      <FormItem v-if="formData.type === '5'" label="供应商" name="supplierId">
+        <Select v-model:value="formData.supplierId" style="width: 100%;">
+          <!-- 供应商选项将通过API加载 -->
+        </Select>
+      </FormItem>
+
+      <FormItem v-if="formData.type === '5'" label="联系人" name="contactPerson">
+        <Input v-model:value="formData.contactPerson" placeholder="请输入联系人" />
+      </FormItem>
+
+      <FormItem v-if="formData.type === '5'" label="联系电话" name="phone">
+        <Input v-model:value="formData.phone" placeholder="请输入联系电话" />
       </FormItem>
       <FormItem label="仓库" name="warehouseId">
         <Select v-model:value="formData.warehouseId" style="width: 100%;">
@@ -48,7 +65,7 @@ import { ref, reactive, watch } from 'vue';
 import { BasicModal, useModalInner } from '@/components/Modal';
 import { Form, FormItem, Select, SelectOption, Input } from 'ant-design-vue';
 import { BasicTable } from '@/components/Table';
-import { saveInventory } from '@/api/inventory';
+import { saveInventory, saveDelegateIn, saveDelegateOut } from '@/api/inventory/bills';
 
 // 表单引用
 const formRef = ref<any>(null);
@@ -59,12 +76,20 @@ const formData = reactive({
   warehouseId: '',
   remark: '',
   details: [],
+  // 委外入库单特有字段
+  supplierId: '',
+  contactPerson: '',
+  phone: '',
 });
 
 // 表单规则
 const formRules = {
   type: [{ required: true, message: '请选择单据类型', trigger: 'change' }],
   warehouseId: [{ required: true, message: '请选择仓库', trigger: 'change' }],
+  supplierId: [{ required: true, message: '请选择供应商', trigger: 'change' }],
+  contactPerson: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
+  phone: [{ required: true, message: '请输入联系电话', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号码', trigger: 'blur' }],
 };
 
 // 明细表格列定义
@@ -104,6 +129,16 @@ watch(visible, (newVal) => {
   }
 });
 
+// 处理类型变更
+const handleTypeChange = () => {
+  // 清空委外入库单特有字段
+  if (formData.type !== '5') {
+    formData.supplierId = '';
+    formData.contactPerson = '';
+    formData.phone = '';
+  }
+};
+
 // 处理提交
 const handleSubmit = async () => {
   try {
@@ -112,7 +147,17 @@ const handleSubmit = async () => {
     // 设置加载状态
     confirmLoading.value = true;
     // 提交数据
-    const res = await saveInventory(formData);
+    let res;
+    if (formData.type === '5') {
+      // 委外入库单
+      res = await saveDelegateIn(formData);
+    } else if (formData.type === '6') {
+      // 委外出库单
+      res = await saveDelegateOut(formData);
+    } else {
+      // 其他单据类型
+      res = await saveInventory(formData);
+    }
     if (res.success) {
       // 触发成功回调
       emit('success');
