@@ -278,6 +278,7 @@ export default defineComponent({
     const submit = (requestData: any) => {
       requestData.businessType = 95;
       state.isSaveRun = false;
+      state.loading = true;
 
       saveDelegateOuta(requestData)
         .then(response => {
@@ -289,12 +290,16 @@ export default defineComponent({
               getIdByData();
             }
           } else {
-            message.error(response.message);
+            message.error(response.message || '保存失败');
             state.isSaveRun = true;
           }
         })
-        .catch(() => {
+        .catch(error => {
+          message.error(`保存失败: ${error instanceof Error ? error.message : '未知错误'}`);
           state.isSaveRun = true;
+        })
+        .finally(() => {
+          state.loading = false;
         });
     };
 
@@ -315,6 +320,7 @@ export default defineComponent({
         return;
       }
 
+      state.loading = true;
       submitDelegateOutaOrder(data)
         .then(res => {
           if (res.code === 200) {
@@ -324,7 +330,15 @@ export default defineComponent({
               message.success('撤回提交成功');
             }
             getIdByData();
+          } else {
+            message.error(res.message || (type === 0 ? '提交失败' : '撤回提交失败'));
           }
+        })
+        .catch(error => {
+          message.error(`${type === 0 ? '提交' : '撤回提交'}失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        })
+        .finally(() => {
+          state.loading = false;
         });
     };
 
@@ -335,6 +349,12 @@ export default defineComponent({
         status: type,
       };
 
+      if (!state.orderId) {
+        message.warning('请先选择单据');
+        return;
+      }
+
+      state.loading = true;
       auditDelegateOuta(requestData)
         .then(response => {
           if (response.code === 200) {
@@ -350,12 +370,21 @@ export default defineComponent({
               }
               getIdByData();
             }
+          } else {
+            message.error(response.message || (type === 1 ? '审核失败' : (state.isSource ? '退单失败' : '弃审失败')));
           }
+        })
+        .catch(error => {
+          message.error(`${type === 1 ? '审核' : (state.isSource ? '退单' : '弃审')}失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        })
+        .finally(() => {
+          state.loading = false;
         });
     };
 
     // 删除
     const remove = (postData: any) => {
+      state.loading = true;
       deleteDelegateOuta(postData)
         .then(response => {
           if (response.code === 200) {
@@ -364,13 +393,20 @@ export default defineComponent({
             state.voucherState = 0;
             getIdByData();
           } else {
-            message.error(response.message);
+            message.error(response.message || '删除失败');
           }
+        })
+        .catch(error => {
+          message.error(`删除失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        })
+        .finally(() => {
+          state.loading = false;
         });
     };
 
     // 获取单据编号
     const getCode = () => {
+      state.loading = true;
       const data = {
         sourceCode: state.sourceCode,
       };
@@ -385,7 +421,15 @@ export default defineComponent({
                 state.orderHeaderData[i].value = state.receiptNumber;
               }
             }
+          } else {
+            message.error(res.message || '获取单据编号失败');
           }
+        })
+        .catch(error => {
+          message.error(`获取单据编号失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        })
+        .finally(() => {
+          state.loading = false;
         });
     };
 
@@ -397,6 +441,7 @@ export default defineComponent({
           <span style="color:red">出库后，此单据不能做任何修改，是否确认出库？</span>
         ),
         onOk: () => {
+          state.loading = true;
           const requestData = {
             id: state.orderId,
           };
@@ -406,7 +451,15 @@ export default defineComponent({
               if (response.code === 200) {
                 message.success('出库成功');
                 getIdByData();
+              } else {
+                message.error(response.message || '出库失败');
               }
+            })
+            .catch(error => {
+              message.error(`出库失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            })
+            .finally(() => {
+              state.loading = false;
             });
         },
       });
@@ -419,7 +472,39 @@ export default defineComponent({
 
     // 获取数据
     const getIdByData = () => {
-      // 实现获取数据逻辑
+      if (!state.orderId) {
+        // 如果没有订单ID，切换到列表视图
+        state.showModel = 'list';
+        return;
+      }
+
+      state.loading = true;
+
+      getDelegateOutaDetail({ id: state.orderId })
+        .then(response => {
+          if (response.code === 200) {
+            const data = response.data;
+            state.orderHeaderData = data.header || [];
+            state.orderFooterData = data.footer || [];
+            state.dataSource = data.details || [];
+            state.voucherState = data.voucherState || 0;
+            state.createUserId = data.createUserId || '';
+            state.receiptNumber = data.voucherCode || '';
+            state.isSource = data.isSource || false;
+            state.sourceVoucherData = data.sourceVoucherData || {};
+            // 设置表单列和槽位
+            state.columns = data.columns || [];
+            state.slotArray = data.slotArray || [];
+          } else {
+            message.error(response.message || '获取单据详情失败');
+          }
+        })
+        .catch(error => {
+          message.error(`获取单据详情失败: ${error instanceof Error ? error.message : '未知错误'}`);
+        })
+        .finally(() => {
+          state.loading = false;
+        });
     };
 
     // 日期格式化函数
@@ -491,10 +576,19 @@ export default defineComponent({
         })
         .catch((error) => {
           state.loading = false;
-          message.error('导出失败: ' + (error.message || '未知错误'));
+          message.error(`导出失败: ${error instanceof Error ? error.message : '未知错误'}`);
         });
     };
-    const theGoods = () => {};
+    // 出库操作
+    const theGoods = () => {
+      if (!state.orderId) {
+        message.warning('请先选择单据');
+        return;
+      }
+
+      // 调用出库确认函数
+      theGoods_delete();
+    };
     const printOrder = () => {};
     const onChangeTime = () => {};
     const setValue = () => {};

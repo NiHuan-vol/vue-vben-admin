@@ -29,6 +29,12 @@ const Classification = () => import('./classificationSet.vue');
 const Archives = () => import('./archives.vue');
 const Balance = () => import('./balance.vue');
 const WarehouseTypes = () => import('./warehouseTypes.vue');
+const InvoiceType = () => import('./invoiceType.vue');
+const PdaSet = () => import('./pdaSet.vue');
+const ProductionCost = () => import('./productionCost.vue');
+const PurchaseType = () => import('./purchaseType.vue');
+const SaleType = () => import('./saleType.vue');
+const InventoryCateGory = () => import('./inventoryCateGory.vue');
 const WarehouseSetting = () => import('./WarehouseSetting.vue');
 
 const message = useMessage();
@@ -47,6 +53,12 @@ const menuItems = [
   { label: '物料档案', key: 'archives' },
   { label: '出入库类别', key: 'warehouseTypes' },
   { label: '期初结存', key: 'balance' },
+  { label: '发票类型', key: 'invoiceType' },
+  { label: 'PDA设置', key: 'pdaSet' },
+  { label: '生产成本', key: 'productionCost' },
+  { label: '采购类型', key: 'purchaseType' },
+  { label: '销售类型', key: 'saleType' },
+  { label: '库存分类', key: 'inventoryCateGory' },
 ];
 
 const handleMenuClick = (item: any) => {
@@ -73,6 +85,24 @@ const handleMenuClick = (item: any) => {
         break;
       case 'warehouseTypes':
         currentComponent.value = WarehouseTypes;
+        break;
+      case 'invoiceType':
+        currentComponent.value = InvoiceType;
+        break;
+      case 'pdaSet':
+        currentComponent.value = PdaSet;
+        break;
+      case 'productionCost':
+        currentComponent.value = ProductionCost;
+        break;
+      case 'purchaseType':
+        currentComponent.value = PurchaseType;
+        break;
+      case 'saleType':
+        currentComponent.value = SaleType;
+        break;
+      case 'inventoryCateGory':
+        currentComponent.value = InventoryCateGory;
         break;
       default:
         currentComponent.value = WarehouseGoods;

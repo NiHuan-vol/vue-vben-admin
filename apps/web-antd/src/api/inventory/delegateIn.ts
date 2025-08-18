@@ -14,6 +14,7 @@ const api = {
   export: '/inventory/delegateIn/exportData',
   import: '/inventory/delegateIn/importData',
   downloadTemplate: '/inventory/delegateIn/downloadImportTemplate',
+  getDetail: '/inventory/delegateIn/detail',
 };
 
 // 获取委外入库单列表
@@ -145,6 +146,19 @@ export function downloadDelegateInTemplate(params: any, mode: ErrorMessageMode =
       url: api.downloadTemplate,
       params,
       responseType: 'blob',
+    },
+    {
+      errorMessageMode: mode,
+    },
+  );
+}
+
+// 获取委外入库单详情
+export function getDelegateInDetail(params: any, mode: ErrorMessageMode = 'message') {
+  return defHttp.get<BaseResp<any>>(
+    {
+      url: api.getDetail,
+      params,
     },
     {
       errorMessageMode: mode,

@@ -333,10 +333,10 @@ async function submit(requestData: any) {
         getIdByData(); // 获取最新一条数据
       }
     } else {
-      message.error(res.msg);
+      message.error(res.message || '保存失败');
     }
   } catch (error) {
-    message.error('保存失败');
+    message.error('保存失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
     isSaveRun.value = true;
@@ -373,10 +373,10 @@ async function submitOrder(type: number) {
       }
       getIdByData();
     } else {
-      message.error(res.msg);
+      message.error(res.message || '操作失败');
     }
   } catch (error) {
-    message.error('操作失败');
+    message.error('操作失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
   }
@@ -411,10 +411,10 @@ async function auditClick(type: number) {
       }
       getIdByData();
     } else {
-      message.error(res.msg);
+      message.error(res.message || '操作失败');
     }
   } catch (error) {
-    message.error('操作失败');
+    message.error('操作失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
   }
@@ -436,10 +436,10 @@ async function remove(postData: any) {
       voucherState.value = VoucherState.DRAFT;
       getIdByData(); // 获取最新一条数据
     } else {
-      message.error(res.msg);
+      message.error(res.message || '删除失败');
     }
   } catch (error) {
-    message.error('删除失败');
+    message.error('删除失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
   }
@@ -448,6 +448,7 @@ async function remove(postData: any) {
 // 获取单据编号
 async function getCode() {
   try {
+    loading.value = true;
     const res = await getDelegateInCode({ sourceCode: sourceCode.value });
     if (res.code === 0) {
       receiptNumber.value = res.data;
@@ -457,10 +458,12 @@ async function getCode() {
         codeItem.value = receiptNumber.value;
       }
     } else {
-      message.error(res.msg);
+      message.error(res.message || '获取单据编号失败');
     }
   } catch (error) {
-    message.error('获取单据编号失败');
+    message.error('获取单据编号失败: ' + (error instanceof Error ? error.message : '未知错误'));
+  } finally {
+    loading.value = false;
   }
 }
 
@@ -473,7 +476,12 @@ async function getIdByData() {
 
   try {
     loading.value = true;
-    const res = await getDelegateInDetail({ id: orderId.value });
+    // 添加someBusinessType和isMyWarehouse参数，与其他API调用保持一致
+    const res = await getDelegateInDetail({
+      id: orderId.value,
+      someBusinessType: basePostData.someBusinessType,
+      isMyWarehouse: basePostData.isMyWarehouse
+    });
     if (res.code === 0) {
       const data = res.data;
       orderHeaderData.value = [
@@ -494,10 +502,10 @@ async function getIdByData() {
       voucherState.value = data.state;
       createUserId.value = data.createUserId;
     } else {
-      message.error(res.msg);
+      message.error(res.message || '获取单据详情失败');
     }
   } catch (error) {
-    message.error('获取单据详情失败');
+    message.error('获取单据详情失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
   }
@@ -520,7 +528,7 @@ function formatDate(date: Date): string {
 }
 
 // 导出明细
-function exportDetail() {
+async function exportDetail() {
   const warehouseId = orderHeaderData.value.find(item => item.code === 'warehouseId')?.value;
   const date = orderHeaderData.value.find(item => item.code === 'date')?.value;
 
@@ -531,16 +539,23 @@ function exportDetail() {
 
   loading.value = true;
 
-  // 准备导出参数
-  const params = {
-    id: orderId.value || undefined,
-    warehouseId,
-    date: date ? new Date(date).toISOString().split('T')[0] : undefined
-  };
+  try {
+    // 准备导出参数
+    const params = {
+      id: orderId.value || undefined,
+      warehouseId,
+      date: date ? new Date(date).toISOString().split('T')[0] : undefined
+    };
 
-  // 调用导出API
-  exportDelegateInData(params).then(response => {
-    loading.value = false;
+    // 调用导出API
+    const response = await exportDelegateInData(params);
+
+    // 检查响应是否为Blob类型
+    if (!(response instanceof Blob)) {
+      message.error('导出失败: 无效的响应格式');
+      return;
+    }
+
     const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -551,10 +566,11 @@ function exportDetail() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     message.success('导出成功');
-  }).catch((e) => {
+  } catch (error) {
+    message.error('导出失败: ' + (error instanceof Error ? error.message : '网络错误'));
+  } finally {
     loading.value = false;
-    message.error('导出失败');
-  });
+  }
 }
 // 确认入库
 async function theGoods() {
@@ -571,10 +587,10 @@ async function theGoods() {
       voucherState.value = VoucherState.IN_STOCK;
       getIdByData();
     } else {
-      message.error(res.msg);
+      message.error(res.message || '入库失败');
     }
   } catch (error) {
-    message.error('入库失败');
+    message.error('入库失败: ' + (error instanceof Error ? error.message : '未知错误'));
   } finally {
     loading.value = false;
   }

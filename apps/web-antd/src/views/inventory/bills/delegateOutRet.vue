@@ -269,21 +269,27 @@ export default defineComponent({
     //保存
     submit(requestData) {
       requestData.businessType = 5;
-      saveDelegateOutRet(requestData).then(response => {
-        if (response.code === 0) {
-          this.message.success('保存成功');
-          this.editMask = true;
+      this.loading = true;
+      this.isSaveRun = false;
+      saveDelegateOutRet(requestData)
+        .then(response => {
+          this.loading = false;
           this.isSaveRun = true;
-          if (!this.orderId) {
-            this.getIdByData(); //获取最新一条数据
+          if (response.code === 0) {
+            this.message.success('保存成功');
+            this.editMask = true;
+            if (!this.orderId) {
+              this.getIdByData(); //获取最新一条数据
+            }
+          } else {
+            this.message.error(response.message || '保存失败');
           }
-        } else {
-          this.message.error(response.message || '保存失败');
+        })
+        .catch((error) => {
+          this.loading = false;
           this.isSaveRun = true;
-        }
-      }).catch((e) => {
-        this.isSaveRun = true;
-      })
+          this.message.error('保存失败: ' + (error.message || '网络错误'));
+        });
     },
     //单据提交
     submitOrder(type) {
@@ -299,18 +305,25 @@ export default defineComponent({
         this.message.warning('该单据未提交无需撤回提交');
         return;
       }
-      submitDelegateOutRet(data).then(res => {
-        if (res.code === 0) {
-          if (type == 0) {
-            this.message.success('提交成功');
+      this.loading = true;
+      submitDelegateOutRet(data)
+        .then(res => {
+          this.loading = false;
+          if (res.code === 0) {
+            if (type == 0) {
+              this.message.success('提交成功');
+            } else {
+              this.message.success('撤回提交成功');
+            }
+            this.getIdByData();
           } else {
-            this.message.success('撤回提交成功');
+            this.message.error(res.message || '操作失败');
           }
-          this.getIdByData();
-        } else {
-          this.message.error(res.message || '操作失败');
-        }
-      })
+        })
+        .catch((error) => {
+          this.loading = false;
+          this.message.error('操作失败: ' + (error.message || '网络错误'));
+        });
     },
     //审核
     auditClick(type) {
@@ -318,56 +331,76 @@ export default defineComponent({
         id: this.orderId,
         status: type
       }
-      examineDelegateOutRet(requestData).then((response) => {
-        if (response.code === 0) {
-          if (type == 1) {
-            this.message.success('审核成功');
-            this.getIdByData();
-          }
-          if (type == 0) {
-            if (this.isSource) {
-              this.message.success('退单成功');
-            } else {
-              this.message.success('弃审成功');
+      this.loading = true;
+      examineDelegateOutRet(requestData)
+        .then((response) => {
+          this.loading = false;
+          if (response.code === 0) {
+            if (type === 1) {
+              this.message.success('审核成功');
+              this.getIdByData();
             }
-            this.getIdByData();
+            if (type === 0) {
+              if (this.isSource) {
+                this.message.success('退单成功');
+              } else {
+                this.message.success('弃审成功');
+              }
+              this.getIdByData();
+            }
+          } else {
+            this.message.error(response.message || '操作失败');
           }
-        } else {
-          this.message.error(response.message || '操作失败');
-        }
-      })
+        })
+        .catch((error) => {
+          this.loading = false;
+          this.message.error('操作失败: ' + (error.message || '网络错误'));
+        });
+    }
     },
     //删除
     remove(postData) {
-      deleteDelegateOutRet({ id: postData.id }).then(response => {
-        if (response.code === 0) {
-          this.message.success('删除成功');
-          this.orderId = '';
-          this.voucherState = 0;
-          this.getIdByData();//获取最新一条数据
-        } else {
-          this.message.error(response.message || '删除失败');
-        }
-      })},{"old_str":
+      this.loading = true;
+      deleteDelegateOutRet({ id: postData.id })
+        .then(response => {
+          this.loading = false;
+          if (response.code === 0) {
+            this.message.success('删除成功');
+            this.orderId = '';
+            this.voucherState = 0;
+            this.getIdByData();//获取最新一条数据
+          } else {
+            this.message.error(response.message || '删除失败');
+          }
+        })
+        .catch((error) => {
+          this.loading = false;
+          this.message.error('删除失败: ' + (error.message || '网络错误'));
+        });
+    }},{"old_str":
     },
     //获取单据编号
     getCode() {
-      let data = {
-        sourceCode: this.sourceCode
-      }
-      getDelegateOutRetCode({ sourceCode: this.sourceCode }).then((res) => {
-        if (res.code === 0) {
-          this.receiptNumber = res.message;
-          for (let i = 0; i < this.orderHeaderData.length; i++) {
-            if (this.orderHeaderData[i].code == 'voucherCode') {
-              this.$set(this.orderHeaderData[i], 'onEdit', false)
-              this.$set(this.orderHeaderData[i], 'value', this.receiptNumber)
+      this.loading = true;
+      getDelegateOutRetCode({ sourceCode: this.sourceCode })
+        .then((res) => {
+          this.loading = false;
+          if (res.code === 0) {
+            this.receiptNumber = res.message;
+            for (let i = 0; i < this.orderHeaderData.length; i++) {
+              if (this.orderHeaderData[i].code == 'voucherCode') {
+                this.$set(this.orderHeaderData[i], 'onEdit', false)
+                this.$set(this.orderHeaderData[i], 'value', this.receiptNumber)
+              }
             }
+          } else {
+            this.message.error(res.message || '获取单据编号失败');
           }
-        } else {
-          this.message.error(res.message || '获取单据编号失败');
-        }
-      });
+        })
+        .catch((error) => {
+          this.loading = false;
+          this.message.error('获取单据编号失败: ' + (error.message || '网络错误'));
+        });
     },
     //入库
     theGoods() {
@@ -382,14 +415,21 @@ export default defineComponent({
           let requestData = {
             id: this.orderId
           }
-          confirmDelegateOutRet(requestData).then((response) => {
-        if (response.code === 0) {
-          this.message.success('入库成功');
-          this.getIdByData();
-        } else {
-          this.message.error(response.message || '入库失败');
-        }
-      })
+          this.loading = true;
+          confirmDelegateOutRet(requestData)
+            .then((response) => {
+              this.loading = false;
+              if (response.code === 0) {
+                this.message.success('入库成功');
+                this.getIdByData();
+              } else {
+                this.message.error(response.message || '入库失败');
+              }
+            })
+            .catch((error) => {
+              this.loading = false;
+              this.message.error('入库失败: ' + (error.message || '网络错误'));
+            });
         },
         onCancel: () => {}
       });
@@ -403,7 +443,12 @@ export default defineComponent({
 
       this.loading = true;
 
-      getDelegateOutRetDetail({ id: this.orderId })
+      // 符合新API规范，添加必要的业务参数
+      getDelegateOutRetDetail({
+        id: this.orderId,
+        someBusinessType: this.basePostData.someBusinessType,
+        isMyWarehouse: this.basePostData.isMyWarehouse
+      })
         .then(response => {
           this.loading = false;
           if (response.code === 0) {
@@ -546,22 +591,27 @@ export default defineComponent({
       })
         .then((response) => {
           this.loading = false;
-          const blob = new Blob([response], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          // 格式化文件名，使用当前日期
-          const currentDate = this.formatDate(new Date());
-          a.download = `委外退料单_${this.receiptNumber || this.orderId}_${currentDate}.xlsx`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          this.message.success('导出成功');
+          if (response instanceof Blob) {
+            const blob = response;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // 格式化文件名，使用当前日期
+            const currentDate = this.formatDate(new Date());
+            a.download = `委外退料单_${this.receiptNumber || this.orderId}_${currentDate}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            this.message.success('导出成功');
+          } else {
+            // 处理非Blob响应
+            this.message.error('导出失败: 无效的响应格式');
+          }
         })
         .catch((error) => {
           this.loading = false;
-          this.message.error('导出失败: ' + (error.message || '未知错误'));
+          this.message.error('导出失败: ' + (error.message || '网络错误'));
         });
     },
     //编辑订单
